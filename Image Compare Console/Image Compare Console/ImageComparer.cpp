@@ -16,17 +16,17 @@ ImageComparer::~ImageComparer()
 
 int ImageComparer::compare(Mat *image, Mat *otherImage)
 {
-	// Convert to HSV
-	Mat imageAsHsv;
-	Mat otherImageAsHsv;
-	cvtColor(*image, imageAsHsv, COLOR_BGR2HSV);
-	cvtColor(*otherImage, otherImageAsHsv, COLOR_BGR2HSV);
+	// Convert to Grayscale
+	Mat imageAsGrayscale;
+	Mat otherImageAsGrayscale;
+	cvtColor(*image, imageAsGrayscale, COLOR_BGR2GRAY);
+	cvtColor(*otherImage, otherImageAsGrayscale, COLOR_BGR2GRAY);
 
 	// Create the histograms
 	MatND imageHistogram;
 	MatND otherImageHistogram;
 	const int NumberOfImages = 1;
-	const int Dimension = 2;
+	const int Dimension = 1;
 	const int Hue = 50;
 	const int Saturation = 60;
 	int histogramSize[] = { Hue, Saturation };
@@ -37,8 +37,8 @@ int ImageComparer::compare(Mat *image, Mat *otherImage)
 	const bool Uniform = true;
 	const bool Accumulate = false;
 	Mat mask = Mat();
-	calcHist(&imageAsHsv, NumberOfImages, channels, mask, imageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
-	calcHist(&otherImageAsHsv, NumberOfImages, channels, mask, otherImageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
+	calcHist(&imageAsGrayscale, NumberOfImages, channels, mask, imageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
+	calcHist(&otherImageAsGrayscale, NumberOfImages, channels, mask, otherImageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
 
 	// Normalize the histograms
 	const double Alpha = 0;
