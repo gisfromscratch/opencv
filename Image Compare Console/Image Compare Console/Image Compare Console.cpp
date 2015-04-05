@@ -30,9 +30,11 @@ static bool addImage(vector<ImageFile> &images, const string &imagePath)
 	return false;
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+//int _tmain(int argc, _TCHAR* argv[])
+
+int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int commandShow)
 {
-	ImageFile imageFile = readImage("C:\\DoubleOneFilledImage.jpg");
+	ImageFile imageFile = readImage("C:\\DoubleRightFilledImage.jpg");
 	if (imageFile.image()->data)
 	{
 		// Read known images
@@ -41,8 +43,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		addImage(imageFiles, "C:\\2005-06_Kolodziejski_Artur[2].jpg");
 		addImage(imageFiles, "C:\\2005-06_Kolodziejski_Artur[3].jpg");
 		addImage(imageFiles, "C:\\DoubleImage.jpg");
+		addImage(imageFiles, "C:\\DoubleLeftImage.jpg");
+		addImage(imageFiles, "C:\\DoubleRightImage.jpg");
 		addImage(imageFiles, "C:\\1995-96_Kramer_Arvid[1].jpg");
-		
+
 		ImageComparer imageComparer(0.75);
 		for (vector<ImageFile>::iterator iterator = imageFiles.begin(); iterator != imageFiles.end(); iterator++)
 		{
@@ -62,4 +66,3 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	return 0;
 }
-
