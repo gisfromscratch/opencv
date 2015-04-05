@@ -6,6 +6,7 @@
 #include <opencv2\core\core.hpp>
 #include <opencv2\highgui\highgui.hpp>
 
+#include "CompareResult.h"
 #include "ImageComparer.h"
 #include "ImageFile.h"
 
@@ -47,11 +48,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			ImageFile knownImageFile = *iterator;
 			Mat *knownImage = knownImageFile.image();
-			int compareResult = imageComparer.compare(imageFile.image(), knownImage);
-			if (0 == compareResult)
+			CompareResult compareResult = imageComparer.compare(imageFile.image(), knownImage);
+			if (compareResult.isIdentical())
 			{
-				namedWindow(knownImageFile.filePath(), WINDOW_AUTOSIZE);
-				imshow(knownImageFile.filePath(), *knownImage);
+				string windowCaption = to_string(compareResult.similarity()) + " " + knownImageFile.filePath();
+				namedWindow(windowCaption, WINDOW_AUTOSIZE);
+				imshow(windowCaption, *knownImage);
 			}
 		}
 

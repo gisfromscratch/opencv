@@ -87,12 +87,14 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CompareResult.h" />
     <ClInclude Include="ImageComparer.h" />
     <ClInclude Include="ImageFile.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CompareResult.cpp" />
     <ClCompile Include="Image Compare Console.cpp" />
     <ClCompile Include="ImageComparer.cpp" />
     <ClCompile Include="ImageFile.cpp" />

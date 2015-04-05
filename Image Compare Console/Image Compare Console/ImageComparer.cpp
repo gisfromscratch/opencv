@@ -14,7 +14,7 @@ ImageComparer::~ImageComparer()
 }
 
 
-int ImageComparer::compare(Mat *image, Mat *otherImage)
+CompareResult ImageComparer::compare(Mat *image, Mat *otherImage)
 {
 	// Convert to Grayscale
 	Mat imageAsGrayscale;
@@ -49,20 +49,7 @@ int ImageComparer::compare(Mat *image, Mat *otherImage)
 
 	// Compare the normalized histograms
 	const int CompareMethod = 0;
-	double compareResult = compareHist(imageHistogram, otherImageHistogram, CompareMethod);
-	if (_thresold <= fabs(compareResult))
-	{
-		return 0;
-	}
-	else
-	{
-		if (compareResult < 0)
-		{
-			return -1;
-		}
-		else
-		{
-			return 1;
-		}
-	}
+	double similarity = compareHist(imageHistogram, otherImageHistogram, CompareMethod);
+	CompareResult compareResult(similarity, _thresold);
+	return compareResult;
 }
