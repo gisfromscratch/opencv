@@ -6,7 +6,7 @@
 using namespace std;
 
 
-CompareResult::CompareResult(double similarity, double thresold) : _similarity(similarity), _thresold(thresold)
+CompareResult::CompareResult(double similarity, double threshold) : _similarity(similarity), _threshold(threshold)
 {
 }
 
@@ -18,7 +18,7 @@ CompareResult::~CompareResult()
 
 bool CompareResult::isIdentical()
 {
-	return _thresold < (fabs(_similarity) + numeric_limits<double>::epsilon());
+	return _threshold < (fabs(_similarity) + numeric_limits<double>::epsilon());
 }
 
 
@@ -28,7 +28,7 @@ double CompareResult::similarity()
 }
 
 
-double CompareResult::thresold()
+double CompareResult::threshold()
 {
-	return _thresold;
+	return _threshold;
 }

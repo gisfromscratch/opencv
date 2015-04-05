@@ -4,7 +4,7 @@
 #include <opencv2\imgproc\imgproc.hpp>
 
 
-ImageComparer::ImageComparer(double thresold) : _thresold(thresold)
+ImageComparer::ImageComparer(double threshold) : _threshold(threshold)
 {
 }
 
@@ -21,6 +21,10 @@ CompareResult ImageComparer::compare(Mat *image, Mat *otherImage)
 	Mat otherImageAsGrayscale;
 	cvtColor(*image, imageAsGrayscale, COLOR_BGR2GRAY);
 	cvtColor(*otherImage, otherImageAsGrayscale, COLOR_BGR2GRAY);
+
+	// Detect the edges
+	/*imageAsGrayscale = detectEdges(&imageAsGrayscale);
+	otherImageAsGrayscale = detectEdges(&imageAsGrayscale);*/
 
 	// Create the histograms
 	MatND imageHistogram;
@@ -50,6 +54,23 @@ CompareResult ImageComparer::compare(Mat *image, Mat *otherImage)
 	// Compare the normalized histograms
 	const int CompareMethod = 0;
 	double similarity = compareHist(imageHistogram, otherImageHistogram, CompareMethod);
-	CompareResult compareResult(similarity, _thresold);
+	CompareResult compareResult(similarity, _threshold);
 	return compareResult;
+}
+
+
+Mat ImageComparer::detectEdges(Mat *image)
+{
+	// Reduce noise with a kernel filter
+	Mat detectedEdges;
+	blur(*image, detectedEdges, Size(3, 3));
+
+	// Detect the edges with Canny Edge Detector
+	const int EdgeThresh = 1;
+	const int LowThreshold = 0;
+	const int MaxLowThreshold = 100;
+	const int Ratio = 3;
+	const int KernelSize = 3;
+	Canny(detectedEdges, detectedEdges, LowThreshold, LowThreshold * Ratio, KernelSize);
+	return detectedEdges;
 }
