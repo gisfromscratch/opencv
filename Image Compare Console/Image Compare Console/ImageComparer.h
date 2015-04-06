@@ -16,6 +16,7 @@ public:
 
 private:
 	Mat detectEdges(Mat *image);
+	CompareResult match(Mat *image, Mat *otherImage);
 
 	double _threshold;
 };
