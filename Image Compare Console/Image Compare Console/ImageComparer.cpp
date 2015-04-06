@@ -24,7 +24,8 @@ CompareResult ImageComparer::compare(Mat *image, Mat *otherImage)
 	cvtColor(*image, imageAsGrayscale, COLOR_BGR2GRAY);
 	cvtColor(*otherImage, otherImageAsGrayscale, COLOR_BGR2GRAY);
 
-	match(&imageAsGrayscale, &otherImageAsGrayscale);
+	// Just use the detected keypoints ratio
+	return match(&imageAsGrayscale, &otherImageAsGrayscale);
 
 	// Detect the edges
 	/*imageAsGrayscale = detectEdges(&imageAsGrayscale);
@@ -84,25 +85,46 @@ CompareResult ImageComparer::match(Mat *image, Mat *otherImage)
 {
 	// Detect the key points using SURF detector
 	const int MinHessian = 400;
-	SurfFeatureDetector featureDetector(MinHessian);
-
-	// Calculate the descriptors
 	vector<KeyPoint> keypoints;
 	vector<KeyPoint> otherKeypoints;
-	Mat descriptors;
-	Mat otherDescriptors;
-	SurfDescriptorExtractor extractor;
-	extractor.compute(*image, keypoints, descriptors);
-	extractor.compute(*otherImage, otherKeypoints, otherDescriptors);
+	SurfFeatureDetector featureDetector(MinHessian);
+	featureDetector.detect(*image, keypoints);
+	featureDetector.detect(*otherImage, otherKeypoints);
 
-	// Match using FLANN matcher
-	vector<DMatch> matches;
-	FlannBasedMatcher matcher;
-	matcher.match(descriptors, otherDescriptors, matches);
+	if (keypoints.size() < otherKeypoints.size())
+	{
+		if (0 == otherKeypoints.size())
+		{
+			return CompareResult(0.0, _threshold);
+		}
+		return CompareResult(1.0 * keypoints.size() / otherKeypoints.size(), _threshold);
+	}
+	else
+	{
+		if (0 == keypoints.size())
+		{
+			return CompareResult(0.0, _threshold);
+		}
+		return CompareResult(1.0 * otherKeypoints.size() / keypoints.size(), _threshold);
+	}
 
-	int imageArea = image->size().area();
-	int otherImageArea = otherImage->size().area();
+	//// Calculate the descriptors
+	//Mat descriptors;
+	//Mat otherDescriptors;
+	//SurfDescriptorExtractor extractor;
+	//extractor.compute(*image, keypoints, descriptors);
+	//extractor.compute(*otherImage, otherKeypoints, otherDescriptors);
 
-	CompareResult compareResult(0.0, _threshold);
-	return compareResult;
+	//// Match using FLANN matcher
+	//vector<DMatch> matches;
+	//FlannBasedMatcher matcher;
+	//matcher.match(descriptors, otherDescriptors, matches);
+
+	//int imageArea = image->size().area();
+	//int otherImageArea = otherImage->size().area();
+
+	//// TODO: Calculate the similarity
+
+	//CompareResult compareResult(0.0, _threshold);
+	//return compareResult;
 }
