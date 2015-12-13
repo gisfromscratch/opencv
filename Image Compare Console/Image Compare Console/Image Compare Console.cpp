@@ -65,10 +65,17 @@ static void ImageCompareExample()
 	}
 }
 
-static void TemplateMatchExample()
+
+static void findMatches(int, void*)
 {
-	ImageFile sourceImageFile = readImage("D:/2005-06_Kolodziejski_Artur[1].jpg");
-	ImageFile templateImageFile = readImage("D:/2005-06_Kolodziejski_Artur_Head.jpg");
+
+}
+
+
+static void TemplateMatchExample(string &sourceFilePath, string &templateFilePath)
+{
+	ImageFile sourceImageFile = readImage(sourceFilePath);
+	ImageFile templateImageFile = readImage(templateFilePath);
 	Mat *sourceImage = sourceImageFile.image(); 
 	Mat *templateImage = templateImageFile.image();
 	if (sourceImage->data && templateImage->data)
@@ -76,6 +83,12 @@ static void TemplateMatchExample()
 		// Copy the image to display
 		Mat displayImage;
 		sourceImage->copyTo(displayImage);
+
+		// Show the original image
+		string windowCaption = sourceImageFile.filePath();
+		namedWindow(windowCaption, WINDOW_AUTOSIZE);
+		imshow(windowCaption, displayImage);
+		waitKey(0);
 
 		// Create the result
 		int columnCount = sourceImage->cols - templateImage->cols + 1;
@@ -98,7 +111,7 @@ static void TemplateMatchExample()
 
 		// Find all matches using a thresold
 		AreaOfInterest aoi;
-		double thresholdValue = 0.08;
+		double thresholdValue = 0.01;
 		Mat thresholdImage;
 		thresholdImage.create(rowCount, columnCount, CV_32FC1);
 		threshold(resultImage, thresholdImage, thresholdValue, 255, CV_THRESH_BINARY);
@@ -128,13 +141,8 @@ static void TemplateMatchExample()
 		//rectangle(displayImage, matchLoc, Point(matchLoc.x + templateImage->cols, matchLoc.y + templateImage->rows), Scalar::all(253), 2, 8, 0);
 		//rectangle(resultImage, matchLoc, Point(matchLoc.x + templateImage->cols, matchLoc.y + templateImage->rows), Scalar::all(0), 2, 8, 0);
 
-		string windowCaption = sourceImageFile.filePath();
 		namedWindow(windowCaption, WINDOW_AUTOSIZE);
 		imshow(windowCaption, displayImage);
-
-		/*windowCaption = templateImageFile.filePath();
-		namedWindow(windowCaption, WINDOW_AUTOSIZE);
-		imshow(windowCaption, resultImage);*/
 
 		waitKey(0);
 	}
@@ -142,7 +150,24 @@ static void TemplateMatchExample()
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int commandShow)
 {
-	TemplateMatchExample();
+	string commandLineArgs(commandLine);
+	regex commandLineRegex("\\s+");
+	sregex_token_iterator commandLineArgIterator(commandLineArgs.begin(), commandLineArgs.end(), commandLineRegex, -1);
+	sregex_token_iterator iteratorEnd;
+	vector<string> arguments;
+	while (iteratorEnd != commandLineArgIterator) {
+		arguments.push_back(commandLineArgIterator->str());
+		commandLineArgIterator++;
+	}
+	if (2 == arguments.size())
+	{
+		try {
+			TemplateMatchExample(arguments[0], arguments[1]);
+		}
+		catch (cv::Exception ex) {
+			cerr << ex.msg << endl; 
+		}
+	}
 
 	return 0;
 }
