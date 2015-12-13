@@ -1,10 +1,12 @@
 #include "ImageComparer.h"
 
 #include <cmath>
+#include <opencv2\features2d\features2d.hpp>
 #include <opencv2\imgproc\imgproc.hpp>
+#include <opencv2\nonfree\features2d.hpp>
 
 
-ImageComparer::ImageComparer(double thresold) : _thresold(thresold)
+ImageComparer::ImageComparer(double threshold) : _threshold(threshold)
 {
 }
 
@@ -14,19 +16,26 @@ ImageComparer::~ImageComparer()
 }
 
 
-int ImageComparer::compare(Mat *image, Mat *otherImage)
+CompareResult ImageComparer::compare(Mat *image, Mat *otherImage)
 {
-	// Convert to HSV
-	Mat imageAsHsv;
-	Mat otherImageAsHsv;
-	cvtColor(*image, imageAsHsv, COLOR_BGR2HSV);
-	cvtColor(*otherImage, otherImageAsHsv, COLOR_BGR2HSV);
+	// Convert to Grayscale
+	Mat imageAsGrayscale;
+	Mat otherImageAsGrayscale;
+	cvtColor(*image, imageAsGrayscale, COLOR_BGR2GRAY);
+	cvtColor(*otherImage, otherImageAsGrayscale, COLOR_BGR2GRAY);
+
+	// Just use the detected keypoints ratio
+	return match(&imageAsGrayscale, &otherImageAsGrayscale);
+
+	// Detect the edges
+	/*imageAsGrayscale = detectEdges(&imageAsGrayscale);
+	otherImageAsGrayscale = detectEdges(&imageAsGrayscale);*/
 
 	// Create the histograms
 	MatND imageHistogram;
 	MatND otherImageHistogram;
 	const int NumberOfImages = 1;
-	const int Dimension = 2;
+	const int Dimension = 1;
 	const int Hue = 50;
 	const int Saturation = 60;
 	int histogramSize[] = { Hue, Saturation };
@@ -37,8 +46,8 @@ int ImageComparer::compare(Mat *image, Mat *otherImage)
 	const bool Uniform = true;
 	const bool Accumulate = false;
 	Mat mask = Mat();
-	calcHist(&imageAsHsv, NumberOfImages, channels, mask, imageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
-	calcHist(&otherImageAsHsv, NumberOfImages, channels, mask, otherImageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
+	calcHist(&imageAsGrayscale, NumberOfImages, channels, mask, imageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
+	calcHist(&otherImageAsGrayscale, NumberOfImages, channels, mask, otherImageHistogram, Dimension, histogramSize, HistogramRanges, Uniform, Accumulate);
 
 	// Normalize the histograms
 	const double Alpha = 0;
@@ -49,20 +58,73 @@ int ImageComparer::compare(Mat *image, Mat *otherImage)
 
 	// Compare the normalized histograms
 	const int CompareMethod = 0;
-	double compareResult = compareHist(imageHistogram, otherImageHistogram, CompareMethod);
-	if (_thresold <= fabs(compareResult))
+	double similarity = compareHist(imageHistogram, otherImageHistogram, CompareMethod);
+	CompareResult compareResult(similarity, _threshold);
+	return compareResult;
+}
+
+
+Mat ImageComparer::detectEdges(Mat *image)
+{
+	// Reduce noise with a kernel filter
+	Mat detectedEdges;
+	blur(*image, detectedEdges, Size(3, 3));
+
+	// Detect the edges with Canny Edge Detector
+	const int EdgeThresh = 1;
+	const int LowThreshold = 0;
+	const int MaxLowThreshold = 100;
+	const int Ratio = 3;
+	const int KernelSize = 3;
+	Canny(detectedEdges, detectedEdges, LowThreshold, LowThreshold * Ratio, KernelSize);
+	return detectedEdges;
+}
+
+
+CompareResult ImageComparer::match(Mat *image, Mat *otherImage)
+{
+	// Detect the key points using SURF detector
+	const int MinHessian = 400;
+	vector<KeyPoint> keypoints;
+	vector<KeyPoint> otherKeypoints;
+	SurfFeatureDetector featureDetector(MinHessian);
+	featureDetector.detect(*image, keypoints);
+	featureDetector.detect(*otherImage, otherKeypoints);
+
+	if (keypoints.size() < otherKeypoints.size())
 	{
-		return 0;
+		if (0 == otherKeypoints.size())
+		{
+			return CompareResult(0.0, _threshold);
+		}
+		return CompareResult(1.0 * keypoints.size() / otherKeypoints.size(), _threshold);
 	}
 	else
 	{
-		if (compareResult < 0)
+		if (0 == keypoints.size())
 		{
-			return -1;
+			return CompareResult(0.0, _threshold);
 		}
-		else
-		{
-			return 1;
-		}
+		return CompareResult(1.0 * otherKeypoints.size() / keypoints.size(), _threshold);
 	}
+
+	//// Calculate the descriptors
+	//Mat descriptors;
+	//Mat otherDescriptors;
+	//SurfDescriptorExtractor extractor;
+	//extractor.compute(*image, keypoints, descriptors);
+	//extractor.compute(*otherImage, otherKeypoints, otherDescriptors);
+
+	//// Match using FLANN matcher
+	//vector<DMatch> matches;
+	//FlannBasedMatcher matcher;
+	//matcher.match(descriptors, otherDescriptors, matches);
+
+	//int imageArea = image->size().area();
+	//int otherImageArea = otherImage->size().area();
+
+	//// TODO: Calculate the similarity
+
+	//CompareResult compareResult(0.0, _threshold);
+	//return compareResult;
 }

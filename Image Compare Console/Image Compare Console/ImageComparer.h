@@ -2,17 +2,22 @@
 
 #include <opencv2\core\core.hpp>
 
+#include "CompareResult.h"
+
 using namespace cv;
 
 class ImageComparer
 {
 public:
-	ImageComparer(double thresold = 0.75);
+	ImageComparer(double threshold = 0.75);
 	virtual ~ImageComparer();
 
-	int compare(Mat *image, Mat *otherImage);
+	CompareResult compare(Mat *image, Mat *otherImage);
 
 private:
-	double _thresold;
+	Mat detectEdges(Mat *image);
+	CompareResult match(Mat *image, Mat *otherImage);
+
+	double _threshold;
 };
 

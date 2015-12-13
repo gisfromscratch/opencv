@@ -6,6 +6,7 @@
 #include <opencv2\core\core.hpp>
 #include <opencv2\highgui\highgui.hpp>
 
+#include "CompareResult.h"
 #include "ImageComparer.h"
 #include "ImageFile.h"
 
@@ -29,29 +30,34 @@ static bool addImage(vector<ImageFile> &images, const string &imagePath)
 	return false;
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+//int _tmain(int argc, _TCHAR* argv[])
+
+int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int commandShow)
 {
-	ImageFile imageFile = readImage("D:\\2005-06_Kolodziejski_Artur[1].jpg");
+	ImageFile imageFile = readImage("C:\\DoubleRightFilledImage.jpg");
 	if (imageFile.image()->data)
 	{
 		// Read known images
 		vector<ImageFile> imageFiles;
-		addImage(imageFiles, "D:\\2005-06_Kolodziejski_Artur[1].jpg");
-		addImage(imageFiles, "D:\\2005-06_Kolodziejski_Artur[2].jpg");
-		addImage(imageFiles, "D:\\2005-06_Kolodziejski_Artur[3].jpg");
-		addImage(imageFiles, "D:\\2005-06_Kolodziejski_Artur[4].jpg");
-		addImage(imageFiles, "D:\\1995-96_Kramer_Arvid[1].jpg");
-		
-		ImageComparer imageComparer(0.1);
+		addImage(imageFiles, "C:\\2005-06_Kolodziejski_Artur[1].jpg");
+		addImage(imageFiles, "C:\\2005-06_Kolodziejski_Artur[2].jpg");
+		addImage(imageFiles, "C:\\2005-06_Kolodziejski_Artur[3].jpg");
+		addImage(imageFiles, "C:\\DoubleImage.jpg");
+		addImage(imageFiles, "C:\\DoubleLeftImage.jpg");
+		addImage(imageFiles, "C:\\DoubleRightImage.jpg");
+		addImage(imageFiles, "C:\\1995-96_Kramer_Arvid[1].jpg");
+
+		ImageComparer imageComparer(0.75);
 		for (vector<ImageFile>::iterator iterator = imageFiles.begin(); iterator != imageFiles.end(); iterator++)
 		{
 			ImageFile knownImageFile = *iterator;
 			Mat *knownImage = knownImageFile.image();
-			int compareResult = imageComparer.compare(imageFile.image(), knownImage);
-			if (0 == compareResult)
+			CompareResult compareResult = imageComparer.compare(imageFile.image(), knownImage);
+			if (compareResult.isIdentical())
 			{
-				namedWindow(knownImageFile.filePath(), WINDOW_AUTOSIZE);
-				imshow(knownImageFile.filePath(), *knownImage);
+				string windowCaption = to_string(compareResult.similarity()) + " " + knownImageFile.filePath();
+				namedWindow(windowCaption, WINDOW_AUTOSIZE);
+				imshow(windowCaption, *knownImage);
 			}
 		}
 
@@ -60,4 +66,3 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	return 0;
 }
-
