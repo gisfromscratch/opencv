@@ -126,7 +126,8 @@ static void TemplateMatchExample(string &sourceFilePath, string &templateFilePat
 						// Add the rectangle
 						Point upperLeft(columnIndex, rowIndex);
 						Point lowerRight(columnIndex + templateImage->cols, rowIndex + templateImage->rows);
-						rectangle(displayImage, upperLeft, lowerRight, Scalar::all(253), 2, 8, 0);
+						//Scalar magenta(126, 18, 230);
+						rectangle(displayImage, upperLeft, lowerRight, Scalar(255, 255, 255), 3, 8, 0);
 
 						aoi.add(rowIndex, rowIndex + templateImage->rows, columnIndex, columnIndex + templateImage->cols);
 
@@ -143,6 +144,9 @@ static void TemplateMatchExample(string &sourceFilePath, string &templateFilePat
 
 		namedWindow(windowCaption, WINDOW_AUTOSIZE);
 		imshow(windowCaption, displayImage);
+
+		// Write result to file
+		imwrite("D:/result.jpg", displayImage);
 
 		waitKey(0);
 	}
